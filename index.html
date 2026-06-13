@@ -5,43 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Undisputed Music</title>
     <style>
-        body { font-family: Arial; background: #121212; color: white; text-align: center; padding: 20px; }
-        h1 { color: #1DB954; }
-        .player { margin: 30px auto; max-width: 600px; background: #1f1f1f; padding: 20px; border-radius: 12px; }
-        audio { width: 100%; margin: 15px 0; }
-        button { background: #1DB954; color: black; border: none; padding: 12px 24px; margin: 5px; border-radius: 30px; font-weight: bold; cursor: pointer; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 240px;
+            background: #000;
+            padding: 20px;
+            border-right: 1px solid #282828;
+        }
+        .logo { font-size: 28px; font-weight: bold; color: #1DB954; margin-bottom: 30px; }
+        .nav a {
+            display: block;
+            color: #b3b3b3;
+            padding: 12px 0;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .nav a:hover { color: white; }
+        .content {
+            flex: 1;
+            background: linear-gradient(#1f1f1f, #121212);
+            padding: 30px;
+            overflow-y: auto;
+        }
+        .playlist {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: #181818;
+            padding: 15px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        .card:hover { background: #282828; transform: translateY(-5px); }
+        .card img { width: 100%; border-radius: 6px; }
+        .player {
+            height: 90px;
+            background: #181818;
+            border-top: 1px solid #282828;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+        audio { width: 100%; max-width: 600px; }
+        button {
+            background: #1DB954;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>Undisputed Music</h1>
-    <p>Your own Spotify-style player</p>
+    <div class="main">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">UNDISPUTED</div>
+            <div class="nav">
+                <a href="#">🏠 Home</a>
+                <a href="#">🔍 Search</a>
+                <a href="#">📚 Library</a>
+            </div>
+        </div>
 
+        <!-- Main Content -->
+        <div class="content">
+            <h1>Welcome to Undisputed Music</h1>
+            <h2>Popular Tracks</h2>
+            <div class="playlist" id="playlist"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Player -->
     <div class="player">
-        <h2>Now Playing: Sample Track</h2>
-        <audio id="audioPlayer" controls>
-            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        
-        <button onclick="playRandom()">Play Random Track</button>
-        <button onclick="document.getElementById('audioPlayer').pause()">Pause</button>
+        <div style="width:250px;">
+            <strong id="nowPlaying">Select a track</strong>
+        </div>
+        <div style="flex:1; text-align:center;">
+            <audio id="audioPlayer" controls style="width:80%;">
+                <source src="" type="audio/mpeg">
+            </audio>
+        </div>
+        <button onclick="playRandom()">🎲 Random</button>
     </div>
 
     <script>
         const tracks = [
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+            { title: "Blinding Lights", artist: "The Weeknd", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+            { title: "Levitating", artist: "Dua Lipa", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+            { title: "Stay", artist: "The Kid LAROI", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+            { title: "Industry Baby", artist: "Lil Nas X", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
+            { title: "Kiss Me More", artist: "Bruno Mars", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" }
         ];
 
+        const playlistDiv = document.getElementById('playlist');
+        tracks.forEach((track, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <h3>${track.title}</h3>
+                <p>${track.artist}</p>
+            `;
+            card.onclick = () => {
+                document.getElementById('audioPlayer').src = track.url;
+                document.getElementById('audioPlayer').play();
+                document.getElementById('nowPlaying').textContent = `${track.title} - ${track.artist}`;
+            };
+            playlistDiv.appendChild(card);
+        });
+
         function playRandom() {
-            const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-            const audio = document.getElementById('audioPlayer');
-            audio.src = randomTrack;
-            audio.play();
+            const random = tracks[Math.floor(Math.random() * tracks.length)];
+            document.getElementById('audioPlayer').src = random.url;
+            document.getElementById('audioPlayer').play();
+            document.getElementById('nowPlaying').textContent = `${random.title} - ${random.artist}`;
         }
     </script>
-
-    <p><small>Free demo tracks • Add your own music later</small></p>
 </body>
 </html>
