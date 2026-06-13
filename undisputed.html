@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Undisputed – Music Streaming</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<style>
+  :root {
+    --ud-bg: #0a0a0f;
+    --ud-surface: #141420;
+    --ud-card: #1e1e2e;
+    --ud-accent: #7c3aed;
+    --ud-accent2: #a855f7;
+    --ud-text: #f1f0f7;
+    --ud-muted: #8b8aa3;
+    --ud-border: rgba(124,58,237,0.2);
+    --ud-hover: rgba(124,58,237,0.15);
+    --ud-player: #0d0d18;
+  }
+  .theme-fire   { --ud-bg:#0f0700;--ud-surface:#1a0e00;--ud-card:#261500;--ud-accent:#f97316;--ud-accent2:#fb923c;--ud-border:rgba(249,115,22,0.2);--ud-hover:rgba(249,115,22,0.15);--ud-player:#0a0500; }
+  .theme-ocean  { --ud-bg:#00080f;--ud-surface:#001220;--ud-card:#001a2e;--ud-accent:#0ea5e9;--ud-accent2:#38bdf8;--ud-border:rgba(14,165,233,0.2);--ud-hover:rgba(14,165,233,0.15);--ud-player:#00060d; }
+  .theme-forest { --ud-bg:#030a02;--ud-surface:#071205;--ud-card:#0c1f09;--ud-accent:#22c55e;--ud-accent2:#4ade80;--ud-border:rgba(34,197,94,0.2);--ud-hover:rgba(34,197,94,0.15);--ud-player:#020801; }
+  .theme-rose   { --ud-bg:#0f0008;--ud-surface:#1a0012;--ud-card:#26001c;--ud-accent:#ec4899;--ud-accent2:#f472b6;--ud-border:rgba(236,72,153,0.2);--ud-hover:rgba(236,72,153,0.15);--ud-player:#0a0007; }
+  .theme-gold   { --ud-bg:#0a0800;--ud-surface:#151100;--ud-card:#1e1900;--ud-accent:#eab308;--ud-accent2:#facc15;--ud-border:rgba(234,179,8,0.2);--ud-hover:rgba(234,179,8,0.15);--ud-player:#080700; }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--ud-bg);
+    color: var(--ud-text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: background 0.4s ease, color 0.4s ease;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 20px;
+    background: var(--ud-surface);
+    border-bottom: 1px solid var(--ud-border);
+    position: relative;
+    z-index: 50;
+    flex-shrink: 0;
+  }
+  .logo {
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--ud-accent), var(--ud-accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .search-wrap {
+    flex: 1;
+    position: relative;
+    max-width: 480px;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--ud-card);
+    border: 1px solid var(--ud-border);
+    border-radius: 24px;
+    padding: 8px 18px 8px 38px;
+    color: var(--ud-text);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-wrap input::placeholder { color: var(--ud-muted); }
+  .search-wrap input:focus {
+    border-color: var(--ud-accent);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+  }
+  .search-wrap .search-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ud-muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  /* ── THEME SWITCHER ── */
+  .theme-btn {
+    background: var(--ud-card);
+    border: 1px solid var(--ud-border);
+    border-radius: 8px;
+    padding: 7px 12px;
+    color: var(--ud-text);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .theme-btn:hover { background: var(--ud-hover); }
+
+  .theme-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 20px;
+    background: var(--ud-card);
+    border: 1px solid var(--ud-border);
+    border-radius: 12px;
+    padding: 14px;
+    z-index: 200;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 260px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .theme-panel.open { display: flex; }
+  .theme-panel-title {
+    width: 100%;
+    font-size: 11px;
+    color: var(--ud-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+  .theme-color {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .theme-color:hover, .theme-color.active {
+    border-color: white;
+    transform: scale(1.12);
+  }
+
+  /* ── LAYOUT ── */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 200px;
+    background: var(--ud-surface);
+    border-right: 1px solid var(--ud-border);
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--ud-accent); border-radius: 2px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ud-muted);
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--ud-hover); color: var(--ud-accent2); }
+  .nav-item.active { background: var(--ud-hover); color: var(--ud-accent2); font-weight: 600; }
+  .nav-item i { font-size: 17px; }
+
+  .sidebar-label {
+    font-size: 10px;
+    color: var(--ud-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 14px 12px 4px;
+    font-weight: 600;
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: var(--ud-bg);
+  }
+  .content::-webkit-scrollbar { width: 5px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: var(--ud-accent); border-radius: 3px; }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: var(--ud-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── GENRE CHIPS ── */
+  .genre-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .genre-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid var(--ud-border);
+    background: var(--ud-card);
+    color: var(--ud-muted);
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .genre-chip:hover { background: var(--ud-hover); color: var(--ud-accent2); }
+  .genre-chip.active { background: var(--ud-accent); color: #fff; border-color: var(--ud-accent); }
+
+  /* ── FEATURED GRID ── */
+  .feat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .feat-card {
+    background: var(--ud-card);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--ud-border);
+  }
+  .feat-card:hover {
+    border-color: var(--ud-accent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .feat-art {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin-bottom: 10px;
+    background: var(--ud-hover);
+  }
+  .feat-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feat-sub  { font-size: 11px; color: var(--ud-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ── SONG LIST ── */
+  .song-list { display: flex; flex-direction: column; gap: 2px; }
+
+  .song-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+    position: relative;
+  }
+  .song-row:hover { background: var(--ud-hover); }
+  .song-row.playing { background: var(--ud-hover); }
+
+  .song-num {
+    width: 22px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ud-muted);
+    flex-shrink: 0;
+  }
+  .song-art {
+    width: 40px;
+    height: 40px;
+    border-radius: 7px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: var(--ud-hover);
+  }
+  .song-info { flex: 1; min-width: 0; }
+  .song-name {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .song-name.playing { color: var(--ud-accent2); }
+  .song-artist {
+    font-size: 11px;
+    color: var(--ud-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+  .song-genre-tag {
+    color: var(--ud-accent);
+    font-size: 10px;
+  }
+  .song-dur {
+    font-size: 11px;
+    color: var(--ud-muted);
+    flex-shrink: 0;
+    min-width: 32px;
+    text-align: right;
+  }
+  .song-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* ── EMOTE BUTTONS ── */
+  .emote-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    color: var(--ud-muted);
+    opacity: 0;
+    line-height: 1;
+  }
+  .song-row:hover .emote-btn { opacity: 1; }
+  .emote-btn:hover { transform: scale(1.35); }
+  .emote-btn.liked    { opacity: 1; filter: drop-shadow(0 0 4px #ec4899); }
+  .emote-btn.disliked { opacity: 1; filter: drop-shadow(0 0 4px #ef4444); }
+
+  /* ── FLOATING REACTION ── */
+  .emote-reaction {
+    position: absolute;
+    right: 80px;
+    top: -8px;
+    font-size: 24px;
+    pointer-events: none;
+    animation: floatUp 1.1s ease forwards;
+    z-index: 10;
+  }
+  @keyframes floatUp {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-36px) scale(1.6); }
+  }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--ud-hover);
+    color: var(--ud-accent2);
+    border-radius: 10px;
+    padding: 2px 9px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* ── SIMILAR SECTION ── */
+  .similar-section {
+    margin-top: 20px;
+    padding: 14px 16px;
+    background: var(--ud-card);
+    border-radius: 12px;
+    border: 1px solid var(--ud-border);
+  }
+  .similar-title {
+    font-size: 13px;
+    color: var(--ud-accent2);
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .similar-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .similar-tag {
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 11px;
+    background: var(--ud-hover);
+    color: var(--ud-accent2);
+    cursor: pointer;
+    border: 1px solid var(--ud-border);
+    transition: all 0.2s;
+  }
+  .similar-tag:hover { background: var(--ud-accent); color: #fff; border-color: var(--ud-accent); }
+
+  /* ── NO RESULTS ── */
+  .no-results {
+    color: var(--ud-muted);
+    font-size: 14px;
+    padding: 40px 20px;
+    text-align: center;
+    line-height: 1.8;
+  }
+  .no-results i { display: block; margin-bottom: 10px; color: var(--ud-accent); }
+
+  /* ── PLAYER BAR ── */
+  .player {
+    background: var(--ud-player);
+    border-top: 1px solid var(--ud-border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    z-index: 30;
+  }
+  .now-art {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    background: var(--ud-hover);
+    transition: background 0.3s;
+  }
+  .now-info { min-width: 0; width: 140px; flex-shrink: 0; }
+  .now-title  { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .now-artist { font-size: 11px; color: var(--ud-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+
+  .player-emotes { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .player-emote-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: transform 0.2s;
+    line-height: 1;
+  }
+  .player-emote-btn:hover { transform: scale(1.3); }
+
+  .player-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .player-controls { display: flex; align-items: center; gap: 16px; }
+
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: var(--ud-muted);
+    cursor: pointer;
+    font-size: 20px;
+    padding: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ctrl-btn:hover { color: var(--ud-text); transform: scale(1.1); }
+  .ctrl-btn.active { color: var(--ud-accent2); }
+
+  .play-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--ud-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-size: 18px;
+    transition: all 0.2s;
+  }
+  .play-btn:hover { background: var(--ud-accent2); transform: scale(1.08); }
+
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 500px;
+  }
+  .prog-time { font-size: 10px; color: var(--ud-muted); width: 32px; text-align: center; }
+
+  .prog-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+  }
+  .prog-bar:hover { height: 6px; }
+  .prog-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--ud-accent2);
+    transition: width 0.5s linear;
+    position: relative;
+  }
+  .prog-fill::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .prog-bar:hover .prog-fill::after { opacity: 1; }
+
+  .vol-wrap { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .vol-icon { color: var(--ud-muted); font-size: 18px; }
+  #volSlider {
+    width: 80px;
+    height: 4px;
+    accent-color: var(--ud-accent);
+    cursor: pointer;
+  }
+
+  /* ── SCROLLBAR (Firefox) ── */
+  * { scrollbar-width: thin; scrollbar-color: var(--ud-accent) transparent; }
+</style>
+</head>
+<body>
+
+<!-- APP SHELL -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo">UNDISPUTED</div>
+    <div class="search-wrap">
+      <i class="ti ti-search search-icon"></i>
+      <input type="text" id="searchInput" placeholder="Search songs, artists, genres, moods…" autocomplete="off" />
+    </div>
+    <button class="theme-btn" id="themeToggle">
+      <i class="ti ti-palette" style="font-size:15px"></i> Theme
+    </button>
+    <!-- Theme Panel -->
+    <div class="theme-panel" id="themePanel">
+      <div class="theme-panel-title">Choose a theme</div>
+      <div class="theme-color active" data-theme=""         title="Purple" style="background:linear-gradient(135deg,#7c3aed,#a855f7)">🔮</div>
+      <div class="theme-color"        data-theme="theme-fire"   title="Fire"   style="background:linear-gradient(135deg,#f97316,#fb923c)">🔥</div>
+      <div class="theme-color"        data-theme="theme-ocean"  title="Ocean"  style="background:linear-gradient(135deg,#0ea5e9,#38bdf8)">🌊</div>
+      <div class="theme-color"        data-theme="theme-forest" title="Forest" style="background:linear-gradient(135deg,#22c55e,#4ade80)">🌲</div>
+      <div class="theme-color"        data-theme="theme-rose"   title="Rose"   style="background:linear-gradient(135deg,#ec4899,#f472b6)">🌸</div>
+      <div class="theme-color"        data-theme="theme-gold"   title="Gold"   style="background:linear-gradient(135deg,#eab308,#facc15)">✨</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-item active" data-view="home"><i class="ti ti-home"></i> Home</div>
+      <div class="nav-item" data-view="search"><i class="ti ti-search"></i> Search</div>
+      <div class="nav-item" data-view="library"><i class="ti ti-music"></i> My Library</div>
+
+      <div class="sidebar-label">Your Music</div>
+      <div class="nav-item" data-view="liked"><i class="ti ti-heart"></i> Liked Songs</div>
+      <div class="nav-item" data-view="recent"><i class="ti ti-clock"></i> Recent</div>
+
+      <div class="sidebar-label">Genres</div>
+      <div class="nav-item" data-view="genre"><i class="ti ti-wave-sine"></i> All Genres</div>
+      <div class="nav-item" data-view="pop"><i class="ti ti-star"></i> Pop</div>
+      <div class="nav-item" data-view="hiphop"><i class="ti ti-microphone"></i> Hip-Hop</div>
+      <div class="nav-item" data-view="rock"><i class="ti ti-guitar"></i> Rock</div>
+      <div class="nav-item" data-view="rb"><i class="ti ti-music"></i> R&B / Soul</div>
+      <div class="nav-item" data-view="electronic"><i class="ti ti-cpu"></i> Electronic</div>
+      <div class="nav-item" data-view="classical"><i class="ti ti-music-note"></i> Classical</div>
+      <div class="nav-item" data-view="latin"><i class="ti ti-confetti"></i> Latin</div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="mainContent"></div>
+
+  </div>
+
+  <!-- PLAYER BAR -->
+  <div class="player">
+    <div class="now-art" id="nowArt">🎵</div>
+    <div class="now-info">
+      <div class="now-title"  id="nowTitle">Select a track</div>
+      <div class="now-artist" id="nowArtist">—</div>
+    </div>
+
+    <div class="player-emotes">
+      <button class="player-emote-btn" id="playerLike"    title="Love it">❤️</button>
+      <button class="player-emote-btn" id="playerDislike" title="Not for me">👎</button>
+    </div>
+
+    <div class="player-center">
+      <div class="player-controls">
+        <button class="ctrl-btn" id="shuffleBtn" title="Shuffle"><i class="ti ti-arrows-shuffle"></i></button>
+        <button class="ctrl-btn" id="prevBtn"    title="Previous"><i class="ti ti-player-skip-back"></i></button>
+        <button class="play-btn" id="playBtn"><i class="ti ti-player-play" id="playIcon"></i></button>
+        <button class="ctrl-btn" id="nextBtn"    title="Next"><i class="ti ti-player-skip-forward"></i></button>
+        <button class="ctrl-btn" id="repeatBtn"  title="Repeat"><i class="ti ti-repeat"></i></button>
+      </div>
+      <div class="progress-wrap">
+        <span class="prog-time" id="currentTime">0:00</span>
+        <div class="prog-bar" id="progBar">
+          <div class="prog-fill" id="progFill" style="width:0%"></div>
+        </div>
+        <span class="prog-time" id="totalTime">0:00</span>
+      </div>
+    </div>
+
+    <div class="vol-wrap">
+      <i class="ti ti-volume vol-icon"></i>
+      <input type="range" id="volSlider" min="0" max="100" value="75" />
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+/* ========================================================
+   DATA
+======================================================== */
+const songs = [
+  {id:1,  name:"Blinding Lights",          artist:"The Weeknd",          genre:"Pop",          emoji:"🌟", dur:"3:22", tags:["synthpop","80s","upbeat","dark pop"],              similar:[2,15,20]},
+  {id:2,  name:"Levitating",               artist:"Dua Lipa",            genre:"Pop",          emoji:"💫", dur:"3:23", tags:["disco","dance","pop","funky"],                     similar:[1,15,20]},
+  {id:3,  name:"HUMBLE.",                  artist:"Kendrick Lamar",      genre:"Hip-Hop",      emoji:"👑", dur:"2:57", tags:["trap","rap","west coast","conscious"],             similar:[4,7,12]},
+  {id:4,  name:"God's Plan",               artist:"Drake",               genre:"Hip-Hop",      emoji:"🙏", dur:"3:18", tags:["rap","rnb","toronto","mellow"],                   similar:[3,7,12]},
+  {id:5,  name:"Bohemian Rhapsody",        artist:"Queen",               genre:"Rock",         emoji:"🎸", dur:"5:55", tags:["classic rock","opera","epic","theatrical"],       similar:[6,16,17]},
+  {id:6,  name:"Smells Like Teen Spirit",  artist:"Nirvana",             genre:"Rock",         emoji:"⚡", dur:"5:01", tags:["grunge","alternative","90s","punk"],              similar:[5,16,17]},
+  {id:7,  name:"4:44",                     artist:"Jay-Z",               genre:"Hip-Hop",      emoji:"🎤", dur:"5:06", tags:["rap","conscious","storytelling","jazz"],          similar:[3,4,12]},
+  {id:8,  name:"Lose Yourself",            artist:"Eminem",              genre:"Hip-Hop",      emoji:"🔥", dur:"5:26", tags:["rap","motivational","movie","fast"],              similar:[3,4,7]},
+  {id:9,  name:"Shape of You",             artist:"Ed Sheeran",          genre:"Pop",          emoji:"🎵", dur:"3:54", tags:["tropical","dancehall","pop","catchy"],            similar:[2,15,20]},
+  {id:10, name:"Watermelon Sugar",         artist:"Harry Styles",        genre:"Pop",          emoji:"🍉", dur:"2:54", tags:["indie pop","funky","breezy","summer"],            similar:[2,9,15]},
+  {id:11, name:"Bad Guy",                  artist:"Billie Eilish",       genre:"Indie",        emoji:"🖤", dur:"3:14", tags:["dark pop","whisper","bass","indie"],              similar:[10,13,19]},
+  {id:12, name:"Alright",                  artist:"Kendrick Lamar",      genre:"Hip-Hop",      emoji:"✊", dur:"3:39", tags:["jazz rap","protest","soul","hopeful"],            similar:[3,7,8]},
+  {id:13, name:"drivers license",          artist:"Olivia Rodrigo",      genre:"Pop",          emoji:"🚗", dur:"4:02", tags:["ballad","heartbreak","teen","emotional"],         similar:[11,15,19]},
+  {id:14, name:"Peaches",                  artist:"Justin Bieber",       genre:"R&B",          emoji:"🍑", dur:"3:18", tags:["rnb","smooth","summer","chill"],                  similar:[2,9,15]},
+  {id:15, name:"Stay",                     artist:"The Kid LAROI",       genre:"Pop",          emoji:"🌙", dur:"2:21", tags:["pop","emotional","fast","heartbreak"],            similar:[1,13,11]},
+  {id:16, name:"Enter Sandman",            artist:"Metallica",           genre:"Metal",        emoji:"🤘", dur:"5:31", tags:["heavy metal","thrash","classic","dark"],          similar:[5,6,17]},
+  {id:17, name:"Black Dog",               artist:"Led Zeppelin",         genre:"Rock",         emoji:"🦅", dur:"4:55", tags:["hard rock","blues","70s","riff"],                similar:[5,6,16]},
+  {id:18, name:"Sunflower",               artist:"Post Malone",          genre:"Pop",          emoji:"🌻", dur:"2:38", tags:["acoustic","mellow","movie","chill"],              similar:[10,14,15]},
+  {id:19, name:"All Too Well",            artist:"Taylor Swift",          genre:"Country Pop",  emoji:"🍂", dur:"5:29", tags:["storytelling","piano","heartbreak","folk"],       similar:[11,13,20]},
+  {id:20, name:"Anti-Hero",              artist:"Taylor Swift",           genre:"Pop",          emoji:"🪞", dur:"3:20", tags:["indie pop","self-reflection","synth","quirky"],   similar:[1,2,13]},
+  {id:21, name:"Redbone",               artist:"Childish Gambino",        genre:"R&B",          emoji:"🎺", dur:"5:27", tags:["soul","funk","psychedelic","70s"],                similar:[14,12,7]},
+  {id:22, name:"Pink + White",          artist:"Frank Ocean",             genre:"R&B",          emoji:"🌸", dur:"3:04", tags:["neo soul","indie","dreamy","emotional"],           similar:[21,14,11]},
+  {id:23, name:"Strobe",               artist:"Deadmau5",                 genre:"Electronic",   emoji:"🎛️", dur:"10:37",tags:["progressive house","epic","atmospheric","edm"],   similar:[24,25]},
+  {id:24, name:"Levels",              artist:"Avicii",                    genre:"Electronic",   emoji:"🌅", dur:"5:35", tags:["progressive house","euphoric","edm","uplifting"],  similar:[23,25]},
+  {id:25, name:"Blue (Da Ba Dee)",   artist:"Eiffel 65",                  genre:"Electronic",   emoji:"💙", dur:"3:38", tags:["eurodance","90s","catchy","pop"],                  similar:[24,23]},
+  {id:26, name:"What's Going On",    artist:"Marvin Gaye",                genre:"Soul",         emoji:"🌍", dur:"3:53", tags:["classic soul","protest","motown","timeless"],      similar:[21,22,7]},
+  {id:27, name:"Superstition",       artist:"Stevie Wonder",              genre:"Soul",         emoji:"🎹", dur:"4:02", tags:["funk","motown","classic","groove"],                similar:[26,21,22]},
+  {id:28, name:"Clair de Lune",      artist:"Debussy",                    genre:"Classical",    emoji:"🎼", dur:"5:01", tags:["piano","ambient","romantic","peaceful"],           similar:[29]},
+  {id:29, name:"Symphony No. 5",    artist:"Beethoven",                   genre:"Classical",    emoji:"🎻", dur:"7:24", tags:["orchestra","dramatic","iconic","powerful"],        similar:[28]},
+  {id:30, name:"La Isla Bonita",     artist:"Madonna",                    genre:"Latin Pop",    emoji:"💃", dur:"4:00", tags:["latin","80s","pop","acoustic"],                    similar:[31,32]},
+  {id:31, name:"Despacito",          artist:"Luis Fonsi",                  genre:"Latin",        emoji:"🏝️", dur:"3:47", tags:["reggaeton","latin pop","tropical","summer"],      similar:[30,32]},
+  {id:32, name:"Hips Don't Lie",    artist:"Shakira",                     genre:"Latin",        emoji:"🔥", dur:"3:38", tags:["latin","dancehall","pop","energetic"],             similar:[30,31]},
+  {id:33, name:"I Got You (I Feel Good)", artist:"James Brown",           genre:"Funk",         emoji:"🎤", dur:"2:47", tags:["funk","soul","classic","joyful"],                  similar:[27,26,21]},
+  {id:34, name:"September",          artist:"Earth, Wind & Fire",          genre:"Funk",         emoji:"🌟", dur:"3:35", tags:["funk","disco","joyful","feel-good"],               similar:[33,27,26]},
+  {id:35, name:"Nuthin But A G Thang", artist:"Dr. Dre",                  genre:"Hip-Hop",      emoji:"🎧", dur:"4:00", tags:["g-funk","west coast","gangsta rap","classic"],    similar:[3,4,8]},
+  {id:36, name:"Rolling in the Deep",  artist:"Adele",                    genre:"Pop",          emoji:"🌊", dur:"3:48", tags:["soul pop","powerful","breakup","classic"],         similar:[19,13,22]},
+  {id:37, name:"Uptown Funk",           artist:"Mark Ronson ft. Bruno Mars", genre:"Funk",      emoji:"🕺", dur:"4:30", tags:["funk","pop","dance","energetic"],                  similar:[34,33,27]},
+  {id:38, name:"Stairway to Heaven",   artist:"Led Zeppelin",             genre:"Rock",         emoji:"🪜", dur:"8:02", tags:["classic rock","epic","folk","progressive"],        similar:[5,17,6]},
+  {id:39, name:"Purple Rain",          artist:"Prince",                   genre:"R&B",          emoji:"🟣", dur:"8:41", tags:["soul","rock","ballad","emotional"],                similar:[22,21,27]},
+  {id:40, name:"Hotline Bling",        artist:"Drake",                    genre:"R&B",          emoji:"📱", dur:"4:27", tags:["rnb","mellow","toronto","pop"],                    similar:[4,14,22]},
+];
+
+const genres = [...new Set(songs.map(s => s.genre))].sort();
+
+/* ========================================================
+   STATE
+======================================================== */
+let currentSong  = null;
+let isPlaying    = false;
+let likedSongs   = new Set();
+let dislikedSongs= new Set();
+let playHistory  = [];
+let progress     = 0;
+let progTimer    = null;
+let shuffle      = false;
+let repeat       = false;
+let currentView  = 'home';
+let activeGenre  = null;
+
+const genreViewMap = {
+  pop:       'Pop',
+  hiphop:    'Hip-Hop',
+  rock:      'Rock',
+  rb:        'R&B',
+  electronic:'Electronic',
+  classical: 'Classical',
+  latin:     'Latin',
+};
+
+/* ========================================================
+   HELPERS
+======================================================== */
+function getSongById(id) { return songs.find(s => s.id === id); }
+
+function fmt(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return m + ':' + String(s).padStart(2,'0');
+}
+
+/* ========================================================
+   RENDER HELPERS
+======================================================== */
+function renderSongList(list) {
+  if (!list.length) return '<div class="no-results">No songs found.</div>';
+  return '<div class="song-list">' + list.map((s, i) => {
+    const playing = currentSong && currentSong.id === s.id;
+    return `
+    <div class="song-row ${playing ? 'playing' : ''}" id="row-${s.id}" onclick="playSong(${s.id})">
+      <div class="song-num">
+        ${playing
+          ? '<i class="ti ti-volume" style="font-size:14px;color:var(--ud-accent2)"></i>'
+          : (i + 1)}
+      </div>
+      <div class="song-art">${s.emoji}</div>
+      <div class="song-info">
+        <div class="song-name ${playing ? 'playing' : ''}">${s.name}</div>
+        <div class="song-artist">${s.artist} · <span class="song-genre-tag">${s.genre}</span></div>
+      </div>
+      <div class="song-actions">
+        <button class="emote-btn ${likedSongs.has(s.id) ? 'liked' : ''}"
+                onclick="event.stopPropagation(); reactSong(${s.id}, 'like')"
+                title="Love it">❤️</button>
+        <button class="emote-btn ${dislikedSongs.has(s.id) ? 'disliked' : ''}"
+                onclick="event.stopPropagation(); reactSong(${s.id}, 'dislike')"
+                title="Not for me">👎</button>
+        <span class="song-dur">${s.dur}</span>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function renderSimilar(song) {
+  if (!song) return '';
+  const sims = song.similar.map(getSongById).filter(Boolean);
+  return `
+  <div class="similar-section">
+    <div class="similar-title"><i class="ti ti-sparkles" style="font-size:14px"></i> Similar to "${song.name}"</div>
+    <div class="similar-tags">
+      ${song.tags.map(t => `<span class="similar-tag" onclick="searchByTag('${t}')">#${t}</span>`).join('')}
+    </div>
+    ${renderSongList(sims)}
+  </div>`;
+}
+
+/* ========================================================
+   VIEW RENDERERS
+======================================================== */
+function renderHome() {
+  const featured  = songs.slice(0, 8);
+  const trending  = songs.slice(8, 20);
+  let html = `
+  <div class="section-title">🔥 Featured</div>
+  <div class="feat-grid">
+    ${featured.map(s => `
+    <div class="feat-card" onclick="playSong(${s.id})">
+      <div class="feat-art">${s.emoji}</div>
+      <div class="feat-name">${s.name}</div>
+      <div class="feat-sub">${s.artist}</div>
+    </div>`).join('')}
+  </div>
+  <div class="section-title">📈 Trending Now</div>
+  ${renderSongList(trending)}`;
+  if (currentSong) html += renderSimilar(currentSong);
+  return html;
+}
+
+function renderGenres() {
+  const list = activeGenre ? songs.filter(s => s.genre === activeGenre) : songs;
+  return `
+  <div class="section-title">🎵 All Genres</div>
+  <div class="genre-chips">
+    <div class="genre-chip ${!activeGenre ? 'active' : ''}" onclick="setGenre(null)">All</div>
+    ${genres.map(g => `
+    <div class="genre-chip ${activeGenre === g ? 'active' : ''}" onclick="setGenre('${g}')">${g}</div>`).join('')}
+  </div>
+  ${renderSongList(list)}`;
+}
+
+function renderLiked() {
+  const list = songs.filter(s => likedSongs.has(s.id));
+  return `
+  <div class="section-title">❤️ Liked Songs <span class="badge">${list.length} songs</span></div>
+  ${list.length === 0
+    ? '<div class="no-results"><i class="ti ti-heart" style="font-size:36px"></i>Like songs using the ❤️ button to see them here</div>'
+    : renderSongList(list)}`;
+}
+
+function renderRecent() {
+  const list = [...new Set(playHistory)].slice(0, 20).map(getSongById).filter(Boolean);
+  return `
+  <div class="section-title">🕐 Recently Played</div>
+  ${list.length === 0
+    ? '<div class="no-results"><i class="ti ti-clock" style="font-size:36px"></i>Play some songs to see your history here</div>'
+    : renderSongList(list)}`;
+}
+
+function renderLibrary() {
+  let html = `<div class="section-title">🎧 Your Library</div>${renderSongList(songs)}`;
+  if (currentSong) html += renderSimilar(currentSong);
+  return html;
+}
+
+function renderSearch(query = '') {
+  if (!query.trim()) {
+    return `
+    <div class="no-results">
+      <i class="ti ti-search" style="font-size:42px"></i>
+      Search for songs, artists, genres, or moods above<br>
+      <span style="font-size:12px;margin-top:8px;display:block">Try: "heartbreak", "jazz rap", "summer", "90s", "epic"</span>
+    </div>`;
+  }
+  const q = query.toLowerCase();
+  const results = songs.filter(s =>
+    s.name.toLowerCase().includes(q) ||
+    s.artist.toLowerCase().includes(q) ||
+    s.genre.toLowerCase().includes(q) ||
+    s.tags.some(t => t.includes(q))
+  );
+  return `
+  <div class="section-title">Results for "<span style="color:var(--ud-accent2)">${query}</span>" <span class="badge">${results.length}</span></div>
+  ${results.length === 0
+    ? `<div class="no-results"><i class="ti ti-mood-sad" style="font-size:36px"></i>No results for "${query}"<br><span style="font-size:12px">Try a different search term</span></div>`
+    : renderSongList(results)}`;
+}
+
+function renderGenreView(genreKey) {
+  const genreName = genreViewMap[genreKey];
+  const variants  = genreName === 'R&B' ? songs.filter(s => s.genre === 'R&B' || s.genre === 'Soul') : songs.filter(s => s.genre === genreName || s.genre.toLowerCase().includes(genreName.toLowerCase()));
+  return `
+  <div class="section-title">🎵 ${genreName}</div>
+  ${renderSongList(variants)}`;
+}
+
+/* ========================================================
+   MAIN RENDER
+======================================================== */
+function renderView() {
+  const mc  = document.getElementById('mainContent');
+  const pos = mc.scrollTop;
+  let html  = '';
+  if (currentView === 'home')       html = renderHome();
+  else if (currentView === 'search')   html = renderSearch(document.getElementById('searchInput').value);
+  else if (currentView === 'library')  html = renderLibrary();
+  else if (currentView === 'liked')    html = renderLiked();
+  else if (currentView === 'recent')   html = renderRecent();
+  else if (currentView === 'genre')    html = renderGenres();
+  else if (genreViewMap[currentView])  html = renderGenreView(currentView);
+  mc.innerHTML = html;
+  mc.scrollTop = pos;
+}
+
+/* ========================================================
+   PLAYBACK
+======================================================== */
+function playSong(id) {
+  const song = getSongById(id);
+  if (!song) return;
+  currentSong = song;
+  playHistory.unshift(id);
+  if (playHistory.length > 100) playHistory.pop();
+  isPlaying = true;
+
+  document.getElementById('nowArt').textContent    = song.emoji;
+  document.getElementById('nowTitle').textContent  = song.name;
+  document.getElementById('nowArtist').textContent = song.artist;
+  document.getElementById('playIcon').className    = 'ti ti-player-pause';
+  startProgress();
+  renderView();
+}
+
+function startProgress() {
+  clearInterval(progTimer);
+  progress = 0;
+  updateProgress();
+  progTimer = setInterval(() => {
+    if (!isPlaying) return;
+    progress += 0.35;
+    if (progress >= 100) {
+      progress = 0;
+      if (repeat) { startProgress(); return; }
+      autoNext();
+    }
+    updateProgress();
+  }, 500);
+}
+
+function updateProgress() {
+  document.getElementById('progFill').style.width = progress + '%';
+  if (!currentSong) return;
+  const [mm, ss] = currentSong.dur.split(':').map(Number);
+  const totalSec = mm * 60 + ss;
+  const currSec  = Math.floor(progress / 100 * totalSec);
+  document.getElementById('currentTime').textContent = fmt(currSec);
+  document.getElementById('totalTime').textContent   = currentSong.dur;
+}
+
+function autoNext() {
+  if (!currentSong) return;
+  const idx     = songs.findIndex(s => s.id === currentSong.id);
+  const nextIdx = shuffle
+    ? Math.floor(Math.random() * songs.length)
+    : (idx + 1) % songs.length;
+  playSong(songs[nextIdx].id);
+}
+
+/* ========================================================
+   REACTIONS
+======================================================== */
+const likeEmojis    = ['❤️','😍','💖','🔥','😘','💕'];
+const dislikeEmojis = ['💔','😤','👎','😒','🙅','😑'];
+
+function reactSong(id, type) {
+  const song = getSongById(id);
+  if (!song) return;
+
+  const emojis = type === 'like' ? likeEmojis : dislikeEmojis;
+  const emote  = emojis[Math.floor(Math.random() * emojis.length)];
+
+  const el = document.createElement('div');
+  el.className   = 'emote-reaction';
+  el.textContent = emote;
+  const row = document.getElementById('row-' + id);
+  if (row) { row.appendChild(el); setTimeout(() => el.remove(), 1200); }
+
+  if (type === 'like') {
+    if (likedSongs.has(id))    likedSongs.delete(id);
+    else { likedSongs.add(id); dislikedSongs.delete(id); }
+  } else {
+    if (dislikedSongs.has(id)) dislikedSongs.delete(id);
+    else { dislikedSongs.add(id); likedSongs.delete(id); }
+  }
+  renderView();
+}
+
+/* ========================================================
+   NAV + SEARCH
+======================================================== */
+function setNav(view) {
+  currentView = view;
+  document.querySelectorAll('.nav-item').forEach(n =>
+    n.classList.toggle('active', n.dataset.view === view)
+  );
+}
+
+function setGenre(g) { activeGenre = g; renderView(); }
+
+function searchByTag(tag) {
+  document.getElementById('searchInput').value = tag;
+  setNav('search');
+  renderView();
+}
+
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.addEventListener('click', () => { setNav(n.dataset.view); renderView(); });
+});
+
+document.getElementById('searchInput').addEventListener('input', function () {
+  setNav('search');
+  renderView();
+});
+
+/* ========================================================
+   PLAYER CONTROLS
+======================================================== */
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (!currentSong) { playSong(songs[0].id); return; }
+  isPlaying = !isPlaying;
+  document.getElementById('playIcon').className = isPlaying ? 'ti ti-player-pause' : 'ti ti-player-play';
+});
+
+document.getElementById('nextBtn').addEventListener('click', autoNext);
+
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (!currentSong) return;
+  const idx = songs.findIndex(s => s.id === currentSong.id);
+  playSong(songs[(idx - 1 + songs.length) % songs.length].id);
+});
+
+document.getElementById('shuffleBtn').addEventListener('click', function () {
+  shuffle = !shuffle;
+  this.classList.toggle('active', shuffle);
+});
+
+document.getElementById('repeatBtn').addEventListener('click', function () {
+  repeat = !repeat;
+  this.classList.toggle('active', repeat);
+});
+
+document.getElementById('progBar').addEventListener('click', function (e) {
+  const rect = this.getBoundingClientRect();
+  progress   = ((e.clientX - rect.left) / rect.width) * 100;
+  updateProgress();
+});
+
+document.getElementById('playerLike').addEventListener('click', () => {
+  if (currentSong) reactSong(currentSong.id, 'like');
+});
+document.getElementById('playerDislike').addEventListener('click', () => {
+  if (currentSong) reactSong(currentSong.id, 'dislike');
+});
+
+/* ========================================================
+   THEME SWITCHER
+======================================================== */
+document.getElementById('themeToggle').addEventListener('click', () => {
+  document.getElementById('themePanel').classList.toggle('open');
+});
+
+document.querySelectorAll('.theme-color').forEach(tc => {
+  tc.addEventListener('click', () => {
+    document.querySelectorAll('.theme-color').forEach(t => t.classList.remove('active'));
+    tc.classList.add('active');
+    document.body.className = tc.dataset.theme || '';
+    document.getElementById('themePanel').classList.remove('open');
+  });
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#themeToggle') && !e.target.closest('#themePanel')) {
+    document.getElementById('themePanel').classList.remove('open');
+  }
+});
+
+/* ========================================================
+   INIT
+======================================================== */
+renderView();
+</script>
+</body>
+</html>
